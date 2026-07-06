@@ -191,6 +191,20 @@ Week 1 page
   - 격자선 표시: `plt.grid(True)`
   - 화면 출력: `plt.show()`
 
+## multiprocessing
+Pool
+- 워커 수 미리 할당하는 방식
+Process
+- 수동으로 직접 프로세스 생성하는 방식
+Queue
+- get
+  - pop과 같은 역할
+  - 데이터 없으면 생길때까지 대기
+- get_nowait
+  - 데이터 없으면 queue.Empty 에러 발생 후 넘어감
+  - get(block=False) 랑 같다.
+
+
 # 개념
 ## 상관계수
 - 정의: 두 변수 간에 선형적 또는 비선형적 관계가 존재하는지, 그리고 그 관계가 얼마나 밀접한지를 -1부터 1 사이의 수치로 나타낸 지표
@@ -210,3 +224,4 @@ Week 1 page
     - 특징: 스피어먼과 마찬가지로 순위 기반이지만, 데이터 쌍들이 서로 크고 작은 방향이 일치하는지 순서 관계를 따져서 계산
     - 장점: 샘플 데이터의 개수가 적거나, 같은 순위가 많을 때 스피어먼보다 더 안정적이고 정확함
   - 활용법: method 옵션 변경 (`df.corr(method='pearson')`, `df.corr(method='spearman')`, `df.corr(method='Kendall')`)
+
