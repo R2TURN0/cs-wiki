@@ -9,6 +9,9 @@ docker build -t welcome-to-docker .
 -t: tags(생성할 이미지 이름)
 . : 경로, .은 현재 위치
 
+서버 OS 종류에 맞게 --platform 옵션 지정해줘야 할 때도 있다.
+docker build --platform linux/amd64 -t my-jupyter-image .
+
 도커 데스크탑 기준 컨테이너 옵션에서 포트 지정 가능
 
 cmd+k 로 도커 허브의 다른 이미지들 이용 가능, 검색어 검색 후 이미지 선택해서 run 누르면 됨
