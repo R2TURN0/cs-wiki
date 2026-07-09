@@ -1,67 +1,126 @@
-# Docker 사용법에 대해 정리
+# Docker
 
-설치 - docker desktop
+Docker를 사용하며 알게 된 정보를 정리하는 문서
 
-dockerfile: 이미지에 생성을 위한 정보
+---
 
-이미지 빌드
+## 설치
+
+Docker Desktop 설치.
+
+---
+
+## Dockerfile & 이미지 빌드
+
+**Dockerfile**은 이미지 생성을 위한 정보를 담는 파일이다.
+
+### 이미지 빌드
+
+```bash
 docker build -t welcome-to-docker .
--t: tags(생성할 이미지 이름)
-. : 경로, .은 현재 위치
+```
 
-서버 OS 종류에 맞게 --platform 옵션 지정해줘야 할 때도 있다.
+- `-t`: tag. 생성할 이미지 이름을 지정한다.
+- `.`: 빌드 컨텍스트 경로. `.`은 현재 위치를 의미한다.
+
+### 플랫폼 지정
+
+서버 OS 아키텍처에 맞게 `--platform` 옵션을 지정해야 할 때가 있다.
+
+```bash
 docker build --platform linux/amd64 -t my-jupyter-image .
+```
 
-도커 데스크탑 기준 컨테이너 옵션에서 포트 지정 가능
+---
 
-cmd+k 로 도커 허브의 다른 이미지들 이용 가능, 검색어 검색 후 이미지 선택해서 run 누르면 됨
+## Docker Desktop
 
-docker compose
-여러 컨테이너를 한번에 실행시켜서 서비스 한번에 띄울 수 있음
+- 컨테이너 옵션에서 **포트 지정**이 가능하다.
+- `Cmd + K`로 Docker Hub의 다른 이미지들을 이용할 수 있다. 검색어로 이미지를 찾은 뒤 선택해서 **Run**을 누르면 된다.
 
-compose.yaml: 이를 위한 실행 방법을 도커에게 알려주는 파일
+---
 
-도커 컴포즈 실행
+## Docker Compose
+
+여러 컨테이너를 한 번에 실행해 서비스를 통째로 띄울 수 있다.
+
+**compose.yaml**은 그 실행 방법을 Docker에게 알려주는 파일이다.
+
+### 실행
+
+```bash
 docker compose up -d
--d: detach 모드로 실행. 백그라운드 실행 모드임
+```
 
+- `-d`: detach 모드. 백그라운드로 실행한다.
+
+### 개발 모드 (실시간 반영)
+
+```bash
 docker compose watch
-실시간 수정 반영되는 개발 모드
-끝내려면 ctrl+c
+```
 
-앱 지워도 도커 컴포즈로 쉽게 재실행 가능
+코드 수정이 실시간으로 반영되는 개발 모드. 종료하려면 `Ctrl + C`.
 
-단 db컨테이너가 지워지면 내용은 지워진다
+> [!NOTE]
+> 앱을 지워도 Docker Compose로 쉽게 재실행할 수 있다. 단, **DB 컨테이너가 지워지면 내용도 함께 지워진다.** 이를 방지하려면 아래 Volume을 사용한다.
 
-이를 방지하기 위해선 volume을 쓸것
-volume은 도커가 관리하는 파일시스템임
+---
 
-사용하려면 compose.yaml에 아래 코드 추가
+## 데이터 유지: Volume & Bind Mount
 
-todo-database:
+Docker 컨테이너의 데이터는 로컬 파일시스템과 분리되어 있다. 목적에 따라 두 방식으로 연결한다.
 
-    volumes: # 공용 database를 todo-database에서 사용할 /data/db로 연결함
-      - database:/data/db #도커 컴포즈 문법임. 연결할 원본 경로:사용할 경로 이름
+### Volume — 데이터 영속화
 
-volumes: #공용 공간에 database 공간 생성
+Volume은 Docker가 관리하는 파일시스템이다. DB처럼 컨테이너가 지워져도 유지되어야 하는 데이터에 쓴다. `compose.yaml`에 다음을 추가한다.
+
+```yaml
+services:
+  todo-database:
+    volumes:
+      # 공용 database 볼륨을 컨테이너의 /data/db에 연결
+      # 문법: 원본(볼륨 이름):사용할 경로
+      - database:/data/db
+
+volumes:
+  # 공용 공간에 database 볼륨 생성
   database:
-              
-도커 컨테이너 데이터들은 로컬 파일시스템과 분리되어있다.
-도커 컨테이너에서 로컬 파일시스템 접근하게 하고 싶으면 bind mount 사용
+```
 
-todo-app:
+### Bind Mount — 로컬 파일시스템 연결
+
+컨테이너가 로컬 파일시스템에 접근하게 하려면 bind mount를 쓴다. 로컬 코드 수정을 컨테이너에 바로 반영할 때 유용하다.
+
+```yaml
+services:
+  todo-app:
     # ...
     volumes:
-      - ./app:/usr/src/app # 로컬 파일시스템의 ./app 경로를 /usr/src/app에 연결
-      - /usr/src/app/node_modules # 해당 경로는 연결(덮어쓰기) 방지
-이런식으로 연결해두면 매번 빌드 안해도 내 컴퓨터의 코드 수정하면 컨테이너에 자동 반영되어서 좋다
+      - ./app:/usr/src/app        # 로컬의 ./app을 컨테이너의 /usr/src/app에 연결
+      - /usr/src/app/node_modules # 이 경로는 연결(덮어쓰기) 방지
+```
 
-프로젝트 containerize
-도커 파일/컴포즈 빌드하는법
-docker init #이 명령어로 도커파일과 컴포즈야믈의 기본적인 필요한 것들 생성 가능
-부족하다면 아래 문서들 참고
-- https://docs.docker.com/reference/dockerfile
-- https://docs.docker.com/reference/compose-file/
+> [!TIP]
+> 이렇게 연결해두면 매번 빌드하지 않아도 내 컴퓨터의 코드 수정이 컨테이너에 자동 반영된다.
 
+---
 
-docker compose up --build # 이미지 새로 만들기
+## 프로젝트 Containerize
+
+기존 프로젝트에 Dockerfile과 compose.yaml을 만드는 방법.
+
+```bash
+docker init
+```
+
+이 명령어로 Dockerfile과 compose.yaml의 기본 틀을 생성할 수 있다. 부족한 부분은 아래 공식 문서를 참고한다.
+
+- Dockerfile: <https://docs.docker.com/reference/dockerfile>
+- Compose file: <https://docs.docker.com/reference/compose-file/>
+
+이미지를 새로 만들며 실행하려면:
+
+```bash
+docker compose up --build
+```

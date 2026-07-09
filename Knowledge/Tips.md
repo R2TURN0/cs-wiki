@@ -1,5 +1,3 @@
-Week 1 page
-
 # Github
 - Github Wiki 만드는 법
   - 리포에서 settings에서 wiki 체크
